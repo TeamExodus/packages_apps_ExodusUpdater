@@ -37,4 +37,7 @@ public class Constants {
     public static final int UPDATE_TYPE_NEW_NIGHTLY = 0;//1;
     //public static final int UPDATE_TYPE_ALL_STABLE = 2;
     public static final int UPDATE_TYPE_ALL_NIGHTLY = 1;//3;
+
+    // if this package is present, gapps are present
+    public static final String GMS_CORE_PKG = "com.google.android.gms";
 }

@@ -15,7 +15,7 @@
 
     <!-- Activity strings -->
     <string name="updatecheckreceiver">UpdateCheckReceiver</string>
-    <string name="sendnotifyactivity">SendNotifyActivity</string>
+    <string name="gappschecker_display_name">GAppsChecker</string>
 
     <!-- Menu and dialog box strings -->
     <string name="menu_refresh">Refresh</string>

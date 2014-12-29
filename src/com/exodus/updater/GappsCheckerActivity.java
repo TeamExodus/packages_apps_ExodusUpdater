@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 VanirAOSP && the Android Open Source Project
+ * Copyright 2014 Exodus
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.vanir.updater;
+package com.exodus.updater;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -33,9 +33,8 @@ import android.view.WindowManager;
 /*
  * Activity to show alert dialogs on keyguard
 */
-
-public class SendNotifyActivity extends Activity {
-    private static final String GMS_CORE = "fart.com.google.android.gms";
+public class GappsCheckerActivity extends Activity {
+    private static final String GMS_CORE = "com.google.android.gms";
 
     /** Called when the activity is first created. */
     @Override
@@ -44,7 +43,7 @@ public class SendNotifyActivity extends Activity {
         if (!areGappsInstalled()) {
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
             final PowerManager.WakeLock wl = pm.newWakeLock(
-                    PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.FULL_WAKE_LOCK, "com.vanir.updater");
+                    PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.FULL_WAKE_LOCK, "com.exodus.updater");
             wl.acquire();
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -65,12 +64,9 @@ public class SendNotifyActivity extends Activity {
                 | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
             dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
             dialog.show();
+        } else {
+            finish();
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
     }
 
     private boolean areGappsInstalled() {

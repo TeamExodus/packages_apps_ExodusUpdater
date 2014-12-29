@@ -121,6 +121,7 @@ public class UpdateCheckService extends IntentService {
         // Set up a progressbar notification
         final int progressID = 1;
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+	Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         if (fromQuicksettings) {
             Notification.Builder progress = new Notification.Builder(this)
@@ -165,7 +166,6 @@ public class UpdateCheckService extends IntentService {
                 + realUpdateCount + " newer than installed)");
 
         if (realUpdateCount == 0 && fromQuicksettings) {
-            Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             Intent i = new Intent(this, UpdatesSettings.class);
             i.putExtra(UpdatesSettings.EXTRA_UPDATE_LIST_UPDATED, true);
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
@@ -186,9 +186,9 @@ public class UpdateCheckService extends IntentService {
 	    nm.notify(R.string.no_updates_found, builder.build());
 
 	    sendBroadcast(finishedIntent);
+	}
 
-	    if (realUpdateCount != 0 && !updaterIsForeground) {
-
+	if (realUpdateCount != 0 && !updaterIsForeground) {
 	    Intent i = new Intent(this, UpdatesSettings.class);
 	    i.putExtra(UpdatesSettings.EXTRA_UPDATE_LIST_UPDATED, true);
 	    PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
@@ -205,6 +205,7 @@ public class UpdateCheckService extends IntentService {
                     .setContentTitle(res.getString(R.string.not_new_updates_found_title))
                     .setContentText(text)
                     .setContentIntent(contentIntent)
+		    .setSound(soundUri)
                     .setAutoCancel(true);
 
             LinkedList<UpdateInfo> realUpdates = new LinkedList<UpdateInfo>();

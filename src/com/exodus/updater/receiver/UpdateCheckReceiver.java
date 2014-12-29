@@ -17,11 +17,12 @@ import android.net.ConnectivityManager;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.exodus.updater.SendNotifyActivity;
-import com.exodus.updater.R;
 import com.exodus.updater.misc.Constants;
+import com.exodus.updater.GappsCheckerActivity;
 import com.exodus.updater.service.UpdateCheckService;
 import com.exodus.updater.utils.Utils;
+
+import com.exodus.updater.R;
 
 public class UpdateCheckReceiver extends BroadcastReceiver {
     private static final String TAG = "UpdateCheckReceiver";
@@ -51,11 +52,13 @@ public class UpdateCheckReceiver extends BroadcastReceiver {
         } else if (Intent.ACTION_BOOT_COMPLETED.equals(action)) {
             // We just booted. Store the boot check state
             prefs.edit().putBoolean(Constants.BOOT_CHECK_COMPLETED, false).apply();
-        
-            // Check for Gapps install && opening message
-            Intent i = new Intent(context.getApplicationContext(), SendNotifyActivity.class);
-            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.getApplicationContext().startActivity(i);
+
+            if (!Utils.areGappsInstalled(context)) {
+                // Check for Gapps install && open message in the case of their absence
+                Intent i = new Intent(context.getApplicationContext(), GappsCheckerActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.getApplicationContext().startActivity(i);
+            }
         }
 
         if (Intent.ACTION_CHECK_FOR_UPDATES.equals(action)) {
