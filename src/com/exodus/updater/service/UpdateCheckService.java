@@ -105,6 +105,7 @@ public class UpdateCheckService extends IntentService {
 
         UpdateApplication app = (UpdateApplication) getApplicationContext();
         final boolean updaterIsForeground = app.isMainActivityActive();
+	final boolean fromQuicksettings = intent.hasExtra("isFromQuicksettings");
 
         if (!Utils.isOnline(this)) {
             // Only check for updates if the device is actually connected to a network
@@ -121,7 +122,7 @@ public class UpdateCheckService extends IntentService {
         final int progressID = 1;
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        if (!updaterIsForeground) {
+        if (fromQuicksettings) {
             Notification.Builder progress = new Notification.Builder(this)
                     .setSmallIcon(R.drawable.cm_updater)
                     .setWhen(System.currentTimeMillis())
@@ -144,7 +145,7 @@ public class UpdateCheckService extends IntentService {
         }
 
         if (availableUpdates == null) {// || mHttpExecutor.isAborted()) {
-            if (!updaterIsForeground) nm.cancel(progressID);
+            if (fromQuicksettings) nm.cancel(progressID);
             sendBroadcast(finishedIntent);
             return;
         }
@@ -163,31 +164,36 @@ public class UpdateCheckService extends IntentService {
                 + availableUpdates.size() + " updates ("
                 + realUpdateCount + " newer than installed)");
 
-        if (!updaterIsForeground) {
+        if (realUpdateCount == 0 && fromQuicksettings) {
             Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             Intent i = new Intent(this, UpdatesSettings.class);
             i.putExtra(UpdatesSettings.EXTRA_UPDATE_LIST_UPDATED, true);
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
                     PendingIntent.FLAG_ONE_SHOT);
 
-            if (realUpdateCount == 0) {
-                // Get the notification ready
-		Notification.Builder builder = new Notification.Builder(this)
-			.setSmallIcon(R.drawable.cm_updater)
-			.setWhen(System.currentTimeMillis())
-			.setTicker(res.getString(R.string.no_updates_found))
-			.setContentTitle(res.getString(R.string.no_updates_found))
-			.setContentText(res.getString(R.string.no_updates_found_body))
-			.setContentIntent(contentIntent)
-			.setSound(soundUri)
-			.setAutoCancel(true);
-		// Trigger the notification
-		nm.cancel(progressID);
-		nm.notify(R.string.no_updates_found, builder.build());
+	    // Get the notification ready
+	    Notification.Builder builder = new Notification.Builder(this)
+		    .setSmallIcon(R.drawable.cm_updater)
+		    .setWhen(System.currentTimeMillis())
+		    .setTicker(res.getString(R.string.no_updates_found))
+		    .setContentTitle(res.getString(R.string.no_updates_found))
+		    .setContentText(res.getString(R.string.no_updates_found_body))
+		    .setContentIntent(contentIntent)
+		    .setSound(soundUri)
+		    .setAutoCancel(true);
+	    // Trigger the notification
+	    nm.cancel(progressID);
+	    nm.notify(R.string.no_updates_found, builder.build());
 
-		sendBroadcast(finishedIntent);
-		return;
-	    }
+	    sendBroadcast(finishedIntent);
+
+	    if (realUpdateCount != 0 && !updaterIsForeground) {
+
+	    Intent i = new Intent(this, UpdatesSettings.class);
+	    i.putExtra(UpdatesSettings.EXTRA_UPDATE_LIST_UPDATED, true);
+	    PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
+		PendingIntent.FLAG_ONE_SHOT);
+
             String text = res.getQuantityString(R.plurals.not_new_updates_found_body,
                     realUpdateCount, realUpdateCount);
 
@@ -250,7 +256,7 @@ public class UpdateCheckService extends IntentService {
             }
 
             // Trigger the notification
-            nm.cancel(progressID);
+            if (fromQuicksettings) nm.cancel(progressID);
             nm.notify(R.string.not_new_updates_found_title, builder.build());
         }
 
