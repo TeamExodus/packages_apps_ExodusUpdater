@@ -51,7 +51,8 @@
     <string name="type_new_incl_nightly">New versions (incl. Nightlies)</string>
 
     <!-- Update checking -->
-    <string name="checking_for_updates">Checking for updates</string>
+    <string name="no_updates_found_body">You are currently running the latest official build.</string>
+    <string name="checking_for_updates">Checking for updates...</string>
     <string name="no_updates_found">No new updates found</string>
     <string name="update_check_failed">The update check failed. Please check your internet connection and try again later.</string>
     <string name="not_new_updates_found_ticker">New updates are available</string>

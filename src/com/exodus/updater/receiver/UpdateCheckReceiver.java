@@ -49,6 +49,14 @@ public class UpdateCheckReceiver extends BroadcastReceiver {
             prefs.edit().putBoolean(Constants.BOOT_CHECK_COMPLETED, false).apply();
         }
 
+        if (Intent.ACTION_CHECK_FOR_UPDATES.equals(action)) {
+            Log.i(TAG, "Received quicksettings check request");
+            Intent i = new Intent(context, UpdateCheckService.class);
+            i.setAction(UpdateCheckService.ACTION_CHECK);
+            context.startService(i);
+            return;
+        }
+
         // Handle the actual update check based on the defined frequency
         if (updateFrequency == Constants.UPDATE_FREQ_AT_BOOT) {
             boolean bootCheckCompleted = prefs.getBoolean(Constants.BOOT_CHECK_COMPLETED, false);

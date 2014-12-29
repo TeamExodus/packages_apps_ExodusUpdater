@@ -55,6 +55,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+                <action android:name="android.intent.CHECK_FOR_UPDATES" />
             </intent-filter>
         </receiver>
         <receiver android:name="com.exodus.updater.receiver.DownloadReceiver">

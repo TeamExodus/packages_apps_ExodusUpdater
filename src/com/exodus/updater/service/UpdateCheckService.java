@@ -13,13 +13,17 @@ import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.exodus.updater.R;
 import com.exodus.updater.UpdateApplication;
@@ -88,11 +92,6 @@ public class UpdateCheckService extends IntentService {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (TextUtils.equals(intent.getAction(), ACTION_CANCEL_CHECK)) {
-            /*synchronized (this) {
-                if (mHttpExecutor != null) {
-                    mHttpExecutor.abort();
-                }
-            }*/
 
             return START_NOT_STICKY;
         }
@@ -102,15 +101,36 @@ public class UpdateCheckService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        /*synchronized (this) {
-            mHttpExecutor = new HttpRequestExecutor();
-        }*/
+        final Resources res = getResources();
+
+        UpdateApplication app = (UpdateApplication) getApplicationContext();
+        final boolean updaterIsForeground = app.isMainActivityActive();
 
         if (!Utils.isOnline(this)) {
             // Only check for updates if the device is actually connected to a network
             Log.i(TAG, "Could not check for updates. Not connected to the network.");
+            if (!updaterIsForeground) {
+                final Context mContext = getApplicationContext();
+                final String cheese = mContext.getString(R.string.update_check_failed);
+                Toast.makeText(mContext, cheese, Toast.LENGTH_SHORT).show();
+            }
             return;
         }
+
+        // Set up a progressbar notification
+        final int progressID = 1;
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        if (!updaterIsForeground) {
+            Notification.Builder progress = new Notification.Builder(this)
+                    .setSmallIcon(R.drawable.cm_updater)
+                    .setWhen(System.currentTimeMillis())
+                    .setTicker(res.getString(R.string.checking_for_updates))
+                    .setContentTitle(res.getString(R.string.checking_for_updates))
+                    .setProgress(0, 0, true);
+            // Trigger the progressbar notification
+            nm.notify(progressID, progress.build());
+         }
 
         // Start the update check
         Intent finishedIntent = new Intent(ACTION_CHECK_FINISHED);
@@ -120,9 +140,11 @@ public class UpdateCheckService extends IntentService {
         } catch (IOException e) {
             Log.e(TAG, "Could not check for updates", e);
             availableUpdates = null;
+            if (!updaterIsForeground) nm.cancel(progressID);
         }
 
         if (availableUpdates == null) {// || mHttpExecutor.isAborted()) {
+            if (!updaterIsForeground) nm.cancel(progressID);
             sendBroadcast(finishedIntent);
             return;
         }
@@ -135,22 +157,37 @@ public class UpdateCheckService extends IntentService {
                 .apply();
 
         int realUpdateCount = finishedIntent.getIntExtra(EXTRA_REAL_UPDATE_COUNT, 0);
-        UpdateApplication app = (UpdateApplication) getApplicationContext();
 
         // Write to log
         Log.i(TAG, "The update check successfully completed at " + d + " and found "
                 + availableUpdates.size() + " updates ("
                 + realUpdateCount + " newer than installed)");
 
-        if (realUpdateCount != 0 && !app.isMainActivityActive()) {
-            // There are updates available
-            // The notification should launch the main app
+        if (!updaterIsForeground) {
+            Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             Intent i = new Intent(this, UpdatesSettings.class);
             i.putExtra(UpdatesSettings.EXTRA_UPDATE_LIST_UPDATED, true);
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i,
                     PendingIntent.FLAG_ONE_SHOT);
 
-            Resources res = getResources();
+            if (realUpdateCount == 0) {
+                // Get the notification ready
+		Notification.Builder builder = new Notification.Builder(this)
+			.setSmallIcon(R.drawable.cm_updater)
+			.setWhen(System.currentTimeMillis())
+			.setTicker(res.getString(R.string.no_updates_found))
+			.setContentTitle(res.getString(R.string.no_updates_found))
+			.setContentText(res.getString(R.string.no_updates_found_body))
+			.setContentIntent(contentIntent)
+			.setSound(soundUri)
+			.setAutoCancel(true);
+		// Trigger the notification
+		nm.cancel(progressID);
+		nm.notify(R.string.no_updates_found, builder.build());
+
+		sendBroadcast(finishedIntent);
+		return;
+	    }
             String text = res.getQuantityString(R.plurals.not_new_updates_found_body,
                     realUpdateCount, realUpdateCount);
 
@@ -213,7 +250,7 @@ public class UpdateCheckService extends IntentService {
             }
 
             // Trigger the notification
-            NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            nm.cancel(progressID);
             nm.notify(R.string.not_new_updates_found_title, builder.build());
         }
 
