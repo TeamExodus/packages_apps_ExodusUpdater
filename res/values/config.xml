@@ -7,7 +7,7 @@
      or at https://www.gnu.org/licenses/gpl-2.0.txt
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="conf_update_server_url" translatable="false">http://www.vanir-exodus.from-me.org/exodus/</string>
+    <string name="conf_update_server_url" translatable="false">http://www.vanir-exodus.net/exodus/</string>
     <string name="conf_update_filename" translateable="false">exodus_update_list</string>
     <bool name="alternateIsInternal">false</bool>
 </resources>
