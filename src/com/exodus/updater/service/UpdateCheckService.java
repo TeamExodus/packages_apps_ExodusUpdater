@@ -305,6 +305,7 @@ public class UpdateCheckService extends IntentService {
     }
 
     private LinkedList<UpdateInfo> getUpdateInfos(String url, int updateType) {
+        Context mContext = getApplicationContext();
         boolean includeAll = true ; //updateType == Constants.UPDATE_TYPE_ALL_NIGHTLY;
             //|| updateType == Constants.UPDATE_TYPE_ALL_STABLE;
         Log.d(TAG, "Looking for updates at "+url+"exodus_update_list");
@@ -312,7 +313,7 @@ public class UpdateCheckService extends IntentService {
         LinkedList<UpdateInfo> infos = new LinkedList<UpdateInfo>();        
         for (String v : versions) {
             Log.d(TAG, "Fetching info for build "+v);
-            UpdateInfo ui = getUpdateInfo(url, v);
+            UpdateInfo ui = getUpdateInfo(url, v,mContext);
             if (ui != null) {
                 if (!includeAll && !ui.isNewerThanInstalled()) {
                      Log.d(TAG, "Build " + ui.getFileName() + " is older than the installed build");
@@ -326,7 +327,7 @@ public class UpdateCheckService extends IntentService {
         return infos;
     }
 
-    private UpdateInfo getUpdateInfo(String urlBase, String version) {
+    private UpdateInfo getUpdateInfo(String urlBase, String version,Context mContext) {
         String[] parts = version.split(";");
         //Log.v(TAG, "getting update info for: "+urlBase+version+"*");
         UpdateInfo ui = null;
@@ -341,6 +342,9 @@ public class UpdateCheckService extends IntentService {
                 long utc = Long.valueOf(utcStr).longValue();
                 int api = Integer.valueOf(apiStr).intValue();
                 ui = new UpdateInfo(Filename+".zip", utc, api, urlBase+Filename+".zip", md5sum, UpdateInfo.Type.NIGHTLY);
+                if (!ui.getChangeLogFile(mContext).exists()) {
+                    Utils.DownloadChangelog(ui, mContext);
+                }
             } catch (Exception anyexception) {
                 Log.e(TAG, "getUpdateInfo()", anyexception);
             }

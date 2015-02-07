@@ -33,7 +33,7 @@
 
     </LinearLayout>
 
-    <com.vanir.updater.NotifyingWebView
+    <com.exodus.updater.NotifyingWebView
         android:id="@+id/changelog"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

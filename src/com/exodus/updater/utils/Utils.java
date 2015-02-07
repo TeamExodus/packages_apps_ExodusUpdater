@@ -34,10 +34,13 @@ import android.view.DisplayInfo;
 import android.view.WindowManager;
 import com.exodus.updater.R;
 import com.exodus.updater.misc.Constants;
+import com.exodus.updater.misc.UpdateInfo;
 import com.exodus.updater.service.UpdateCheckService;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.InputStreamReader;
@@ -50,7 +53,7 @@ import java.util.LinkedList;
 public class Utils {
     // Device type reference
     private static int sDeviceType = -1;
-
+    private static final String TAG="ExodusUpdater";
     // Device types
     private static final int DEVICE_PHONE = 0;
     private static final int DEVICE_HYBRID = 1;
@@ -279,4 +282,78 @@ public class Utils {
         }
         return true;
     }
+    
+    public static boolean DownloadChangelog(UpdateInfo Info,Context context) {
+        File f = Info.getChangeLogFile(context);
+        if (!f.exists() ) {
+            f.delete();
+        }
+        String churl=Info.getDownloadUrl() + ".changelog";
+        BufferedReader reader = null;
+        BufferedWriter writer = null;
+        boolean finished = false;
+        try {
+            Log.d(TAG, "Getting change log for " + Info.getFileName() + ", url " + churl);
+            URL url= new URL(churl);
+            writer = new BufferedWriter(new FileWriter(f));
+            reader = new BufferedReader(new InputStreamReader(url.openStream()));
+            boolean categoryMatch = false, hasData = false;
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) {
+                    continue;
+                }
+                if (line.startsWith("=")) {
+                    categoryMatch = !categoryMatch;
+                } else if (categoryMatch) {
+                    if (hasData) {
+                        writer.append("<br />");
+                    }
+                    writer.append("<b><u>");
+                    writer.append(line);
+                    writer.append("</u></b>");
+                    writer.append("<br />");
+                    hasData = true;
+                } else if (line.startsWith("*")) {
+                    writer.append("<br /><b>");
+                    writer.append(line.replaceAll("\\*", ""));
+                    writer.append("</b>");
+                    writer.append("<br />");
+                    hasData = true;
+                } else {
+                    writer.append("&#8226;&nbsp;");
+                    writer.append(line);
+                    writer.append("<br />");
+                    hasData = true;
+                }
+            }
+            finished = true;
+        } catch (MalformedURLException e) {    
+            Log.e(TAG, "URL failure for " + churl , e);
+        } catch (IOException e) {
+            Log.e(TAG, "Downloading change log for " + Info.getFileName() + " failed", e);
+            // keeping finished at false will delete the partially written file below
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    // ignore, not much we can do anyway
+                }
+            }
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    // ignore, not much we can do anyway
+                }
+            }
+        } 
+        if (!finished) {
+            f.delete();
+        }            
+        return finished;
+    }
+
 }
