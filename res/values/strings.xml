@@ -13,6 +13,10 @@
     <string name="display_name">Updates</string>
     <string name="unknown">Unknown</string>
 
+    <!-- Gapps -->
+    <string name="gapps_title">DHO gapps packages</string>
+    <string name="gapps_url">http://www.emccann.net/dho/5-Gapps/</string>
+
     <!-- Activity strings -->
     <string name="updatecheckreceiver">UpdateCheckReceiver</string>
     <string name="gappschecker_display_name">GAppsChecker</string>

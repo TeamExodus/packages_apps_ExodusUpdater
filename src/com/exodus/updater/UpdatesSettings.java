@@ -21,6 +21,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -32,6 +33,7 @@ import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Menu;
@@ -56,7 +58,7 @@ import java.util.Date;
 import java.util.LinkedList;
 
 public class UpdatesSettings extends PreferenceActivity implements
-        OnPreferenceChangeListener, UpdatePreference.OnReadyListener, UpdatePreference.OnActionListener {
+        OnPreferenceChangeListener, UpdatePreference.OnReadyListener, UpdatePreference.OnActionListener, PreferenceManager.OnPreferenceTreeClickListener {
     private static String TAG = "UpdatesSettings";
 
     // intent extras
@@ -73,6 +75,7 @@ public class UpdatesSettings extends PreferenceActivity implements
     private SharedPreferences mPrefs;
     private CheckBoxPreference mBackupRom;
     private ListPreference mUpdateCheck;
+    private Preference mGapps;
     // private ListPreference mUpdateType;
 
     private PreferenceCategory mUpdatesList;
@@ -137,6 +140,8 @@ public class UpdatesSettings extends PreferenceActivity implements
             mUpdateCheck.setSummary(mapCheckValue(check));
             mUpdateCheck.setOnPreferenceChangeListener(this);
         }
+
+        mGapps = (Preference) findPreference("check_dho_gapps");
 
         /* We don't need this for the moment
         if (mUpdateType != null) {
@@ -227,6 +232,20 @@ public class UpdatesSettings extends PreferenceActivity implements
     public void onReady(UpdatePreference pref) {
         pref.setOnReadyListener(null);
         mUpdateHandler.post(mUpdateProgress);
+    }
+
+    @Override
+    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+        if (preference == mGapps) {
+            String url = getResources().getString(R.string.gapps_url);
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setData(Uri.parse(url));
+            this.startActivity(intent);
+        } else {
+            return super.onPreferenceTreeClick(preferenceScreen, preference);
+        }
+        return true;
     }
 
     @Override

@@ -12,6 +12,10 @@
     android:title="@string/display_name"
     xmlns:settings="http://schemas.android.com/apk/res/com.android.settings">
 
+    <PreferenceScreen
+        android:key="check_dho_gapps"
+        android:title="@string/gapps_title" />
+
      <ListPreference
          android:key="pref_update_check_interval"
          android:persistent="false"
