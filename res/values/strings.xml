@@ -14,8 +14,8 @@
     <string name="unknown">Unknown</string>
 
     <!-- Gapps -->
-    <string name="gapps_title">DHO gapps packages</string>
-    <string name="gapps_url">http://www.emccann.net/dho/5-Gapps/</string>
+    <string name="gapps_title">BaNkS-dynamic-gapps-L</string>
+    <string name="gapps_url">http://fitsnugly.euroskank.com/?rom=banks&amp;device=gapps</string>
 
     <!-- Activity strings -->
     <string name="updatecheckreceiver">UpdateCheckReceiver</string>
