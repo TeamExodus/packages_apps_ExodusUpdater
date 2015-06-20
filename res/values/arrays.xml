@@ -28,19 +28,15 @@
         <item>2419200</item>
     </string-array>
 
-    <!--<string-array name="update_type_entries" translatable="false">
-        <item>@string/type_new</item>
-        <item>@string/type_new_incl_nightly</item>
-        <item>@string/type_all</item>
-        <item>@string/type_all_incl_nightly</item>
+    <!-- Gapps entries dyanamically changes in app if we change here -->
+    <string-array name="gapps_entries" translatable="false">
+        <item>@string/gapps1</item>
+        <item>@string/gapps2</item>
     </string-array>
-
-    <string-array name="update_type_values" translatable="false">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-    </string-array>-->
+    <string-array name="gapps_entries_url" translatable="false">
+        <item>http://fitsnugly.euroskank.com/?rom=banks&amp;device=gapps</item>
+        <item>https://github.com/cgapps/vendor_google/tree/builds/arm</item>
+    </string-array>
 
     <string-array name="exodus_update_type_entries" translatable="false">
         <item>@string/type_new_incl_nightly</item>

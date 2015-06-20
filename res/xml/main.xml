@@ -10,11 +10,12 @@
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:title="@string/display_name"
+    android:key="exodus_updater_screen"
     xmlns:settings="http://schemas.android.com/apk/res/com.android.settings">
 
-    <PreferenceScreen
+    <!--PreferenceScreen
         android:key="check_dho_gapps"
-        android:title="@string/gapps_title" />
+        android:title="@string/gapps_title" /-->
 
      <ListPreference
          android:key="pref_update_check_interval"
@@ -40,10 +41,12 @@
          android:title="@string/backup_rom_title"
          android:summary="@string/backup_rom_summary" />
     -->
-
+    <PreferenceCategory
+        android:key="latest_category"
+        android:title="@string/latest_update_title">
+    </PreferenceCategory>
     <PreferenceCategory
         android:key="updates_category"
-        android:title="@string/available_updates_title">
+        android:title="@string/previous_updates_title">
     </PreferenceCategory>
-
 </PreferenceScreen>

@@ -138,33 +138,51 @@ public class Utils {
          * 4.- echo '--update_package=SDCARD:update.zip' >> /cache/recovery/command
          * 5.- reboot recovery
          */
+        Process p = null;
+        OutputStream os = null;
+        try{
+            // Set the 'boot recovery' command
+            p = Runtime.getRuntime().exec("sh");
+            os = p.getOutputStream();
+            os.write("mkdir -p /cache/recovery/\n".getBytes());
+            os.write("echo 'boot-recovery' >/cache/recovery/command\n".getBytes());
 
-        // Set the 'boot recovery' command
-        Process p = Runtime.getRuntime().exec("sh");
-        OutputStream os = p.getOutputStream();
-        os.write("mkdir -p /cache/recovery/\n".getBytes());
-        os.write("echo 'boot-recovery' >/cache/recovery/command\n".getBytes());
+            // See if backups are enabled and add the nandroid flag
+            /* TODO: add this back once we have a way of doing backups that is not recovery specific
+               if (mPrefs.getBoolean(Constants.BACKUP_PREF, true)) {
+               os.write("echo '--nandroid'  >> /cache/recovery/command\n".getBytes());
+               }
+               */
 
-        // See if backups are enabled and add the nandroid flag
-        /* TODO: add this back once we have a way of doing backups that is not recovery specific
-           if (mPrefs.getBoolean(Constants.BACKUP_PREF, true)) {
-           os.write("echo '--nandroid'  >> /cache/recovery/command\n".getBytes());
-           }
-           */
+            // Add the update folder/file name
+            // Emulated external storage moved to user-specific paths in 4.2
+            String userPath = Environment.isExternalStorageEmulated() ? ("/" + UserHandle.myUserId()) : "";
 
-        // Add the update folder/file name
-        // Emulated external storage moved to user-specific paths in 4.2
-        String userPath = Environment.isExternalStorageEmulated() ? ("/" + UserHandle.myUserId()) : "";
+            String cmd = "echo '--update_package=" + getStorageMountpoint(context) + userPath
+                + "/" + Constants.UPDATES_FOLDER + "/" + updateFileName
+                + "' >> /cache/recovery/command\n";
+            os.write(cmd.getBytes());
+            os.flush();
 
-        String cmd = "echo '--update_package=" + getStorageMountpoint(context) + userPath
-            + "/" + Constants.UPDATES_FOLDER + "/" + updateFileName
-            + "' >> /cache/recovery/command\n";
-        os.write(cmd.getBytes());
-        os.flush();
-
-        // Trigger the reboot
-        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        powerManager.reboot("recovery");
+            // Trigger the reboot
+            PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            powerManager.reboot("recovery");
+        } finally {
+            if (p != null) {
+                try {
+                    p.destroy();
+                } catch (Exception e) {
+                    // ignore, not much we can do anyway
+                }
+            }
+            if (os != null) {
+                try {
+                    os.close();
+                } catch (IOException e) {
+                    // ignore, not much we can do anyway
+                }
+            }
+        }
     }
 
     private static String getStorageMountpoint(Context context) {
@@ -204,36 +222,71 @@ public class Utils {
 
     public static LinkedList<String> readMultilineFile(String urlstr) {
         LinkedList<String> ret = new LinkedList<String>();
+        BufferedReader br = null;
+        InputStreamReader is = null;
         try {
             // Create a URL for the desired page
             URL url = new URL(urlstr);
 
             // Read all the text returned by the server
-            BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+            is = new InputStreamReader(url.openStream());
+            br = new BufferedReader(is);
             String str;
-            while ((str = in.readLine()) != null) {
+            while ((str = br.readLine()) != null) {
                 // str is one line of text; readLine() strips the newline character(s)
                 ret.add(str);
             }
-            in.close();
         } catch (MalformedURLException e) {
         } catch (IOException e) {
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    // ignore, not much we can do anyway
+                }
+            }
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    // ignore, not much we can do anyway
+                }
+            }
         }
         return ret;
     }
 
     public static String readFile(String urlstr) {
         String ret = null;
+        BufferedReader br = null;
+        InputStreamReader is = null;
         try {
             // Create a URL for the desired page
             URL url = new URL(urlstr);
 
             // Read all the text returned by the server
-            BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-            ret = in.readLine();
-            in.close();
+            is = new InputStreamReader(url.openStream());
+            br = new BufferedReader(is);
+            ret = br.readLine();
+            br.close();
         } catch (MalformedURLException e) {
         } catch (IOException e) {
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    // ignore, not much we can do anyway
+                }
+            }
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    // ignore, not much we can do anyway
+                }
+            }
         }
         return ret;
     }
@@ -291,12 +344,14 @@ public class Utils {
         String churl=Info.getDownloadUrl() + ".changelog";
         BufferedReader reader = null;
         BufferedWriter writer = null;
+        InputStreamReader is = null;
         boolean finished = false;
         try {
             Log.d(TAG, "Getting change log for " + Info.getFileName() + ", url " + churl);
             URL url= new URL(churl);
             writer = new BufferedWriter(new FileWriter(f));
-            reader = new BufferedReader(new InputStreamReader(url.openStream()));
+            is = new InputStreamReader(url.openStream());
+            reader = new BufferedReader(is);
             boolean categoryMatch = false, hasData = false;
             String line;
             while ((line = reader.readLine()) != null) {
@@ -335,6 +390,13 @@ public class Utils {
             Log.e(TAG, "Downloading change log for " + Info.getFileName() + " failed", e);
             // keeping finished at false will delete the partially written file below
         } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    // ignore, not much we can do anyway
+                }
+            }
             if (reader != null) {
                 try {
                     reader.close();

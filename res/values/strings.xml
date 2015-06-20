@@ -9,17 +9,20 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <!-- General strings -->
-    <string name="app_name">Exodus Updater</string>
-    <string name="display_name">Updates</string>
+    <string name="app_name">Exodus updater</string>
+    <string name="display_name">Exodus updater</string>
     <string name="unknown">Unknown</string>
 
     <!-- Gapps -->
     <string name="gapps_title">BaNkS-dynamic-gapps-L</string>
     <string name="gapps_url">http://fitsnugly.euroskank.com/?rom=banks&amp;device=gapps</string>
 
+    <string name="gapps1">Banks dynamic</string>
+    <string name="gapps2">CyanogenMod</string>
     <!-- Activity strings -->
     <string name="updatecheckreceiver">UpdateCheckReceiver</string>
-    <string name="gappschecker_display_name">GAppsChecker</string>
+    <string name="gappschecker_display_name">GappsChecker</string>
+    <string name="gapps_menu_title">Gapps link</string>
 
     <!-- Menu and dialog box strings -->
     <string name="menu_refresh">Refresh</string>
@@ -36,7 +39,8 @@
     <string name="dialog_close">Close</string>
 
     <!-- Settings strings -->
-    <string name="available_updates_title">Available updates</string>
+    <string name="latest_update_title">Latest update</string>
+    <string name="previous_updates_title">Previous updates</string>
     <string name="no_available_updates_intro">The last check did not find any available updates. To manually check for new updates, use the Refresh button.</string>
     <string name="new_update_summary">New</string>
     <string name="downloaded_update_summary">Downloaded</string>
@@ -52,7 +56,6 @@
     <string name="check_weekly">Weekly</string>
     <string name="check_bi_weekly">Bi-weekly</string>
     <string name="check_monthly">Monthly</string>
-
     <string name="update_type_title">Update types</string>
     <string name="type_all">All versions (Stable only)</string>
     <string name="type_all_incl_nightly">All versions (incl. Nightlies)</string>
@@ -62,6 +65,7 @@
     <!-- Update checking -->
     <string name="no_updates_found_body">You are currently running the latest official build.</string>
     <string name="checking_for_updates">Checking for updates...</string>
+    <string name="update_not_available">Update not available</string>
     <string name="no_updates_found">No new updates found</string>
     <string name="update_check_failed">The update check failed. Please check your internet connection and try again later.</string>
     <string name="not_new_updates_found_ticker">New updates are available</string>
@@ -121,7 +125,7 @@
     <string name="loading_changelog">Loading\u2026</string>
 
     <!-- DashClock extension strings -->
-    <string name="extension_label">Exodus Updates</string>
+    <string name="extension_label">Exodus updates</string>
     <string name="extension_description">Displays number of new updates available.</string>
     <plurals name="extension_status">
         <item quantity="one"><xliff:g id="count">%d</xliff:g> update</item>

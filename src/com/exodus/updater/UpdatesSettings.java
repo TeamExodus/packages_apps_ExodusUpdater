@@ -23,7 +23,6 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.preference.CheckBoxPreference;
@@ -66,18 +65,21 @@ public class UpdatesSettings extends PreferenceActivity implements
     public static final String EXTRA_FINISHED_DOWNLOAD_ID = "download_id";
     public static final String EXTRA_FINISHED_DOWNLOAD_PATH = "download_path";
 
+    private static final String LATEST_CATEGORY = "latest_category";
     private static final String UPDATES_CATEGORY = "updates_category";
 
     private static final int MENU_REFRESH = 0;
     private static final int MENU_DELETE_ALL = 1;
     private static final int MENU_SYSTEM_INFO = 2;
+    private static final int MENU_GAPPS_LINK = 3;
 
+    private static boolean isMLatestListRemoved = false;
     private SharedPreferences mPrefs;
     private CheckBoxPreference mBackupRom;
     private ListPreference mUpdateCheck;
-    private Preference mGapps;
     // private ListPreference mUpdateType;
 
+    private PreferenceCategory mLatestList;
     private PreferenceCategory mUpdatesList;
     private UpdatePreference mDownloadingPreference;
 
@@ -90,6 +92,7 @@ public class UpdatesSettings extends PreferenceActivity implements
     private boolean mDownloading = false;
     private long mDownloadId;
     private String mFileName;
+    private int selected = -1;
 
     private Handler mUpdateHandler = new Handler();
 
@@ -128,6 +131,7 @@ public class UpdatesSettings extends PreferenceActivity implements
 
         // Load the layouts
         addPreferencesFromResource(R.xml.main);
+        mLatestList = (PreferenceCategory) findPreference(LATEST_CATEGORY);
         mUpdatesList = (PreferenceCategory) findPreference(UPDATES_CATEGORY);
         mUpdateCheck = (ListPreference) findPreference(Constants.UPDATE_CHECK_PREF);
         // mUpdateType = (ListPreference) findPreference(Constants.UPDATE_TYPE_PREF);
@@ -141,7 +145,7 @@ public class UpdatesSettings extends PreferenceActivity implements
             mUpdateCheck.setOnPreferenceChangeListener(this);
         }
 
-        mGapps = (Preference) findPreference("check_dho_gapps");
+        //mGapps = (Preference) findPreference("check_dho_gapps");
 
         /* We don't need this for the moment
         if (mUpdateType != null) {
@@ -162,6 +166,7 @@ public class UpdatesSettings extends PreferenceActivity implements
              bar.setDisplayHomeAsUpEnabled(true);
         } catch(java.lang.NullPointerException ex) {
              // YOLO
+            Log.e(TAG,"Something went wrong :"+ex);
         }
 
         // Turn on the Options Menu
@@ -179,6 +184,9 @@ public class UpdatesSettings extends PreferenceActivity implements
             .setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
 
         menu.add(0, MENU_SYSTEM_INFO, 0, R.string.menu_system_info)
+            .setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+
+        menu.add(0, MENU_GAPPS_LINK , 0, R.string.gapps_menu_title)
             .setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
 
         return true;
@@ -201,6 +209,10 @@ public class UpdatesSettings extends PreferenceActivity implements
 
             case android.R.id.home:
                 onBackPressed();
+                return true;
+
+            case MENU_GAPPS_LINK:
+                showGappsLink();
                 return true;
         }
         return false;
@@ -236,16 +248,7 @@ public class UpdatesSettings extends PreferenceActivity implements
 
     @Override
     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
-        if (preference == mGapps) {
-            String url = getResources().getString(R.string.gapps_url);
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setData(Uri.parse(url));
-            this.startActivity(intent);
-        } else {
-            return super.onPreferenceTreeClick(preferenceScreen, preference);
-        }
-        return true;
+        return super.onPreferenceTreeClick(preferenceScreen, preference);
     }
 
     @Override
@@ -594,12 +597,21 @@ public class UpdatesSettings extends PreferenceActivity implements
         if (mUpdatesList == null) {
             return;
         }
-
+        if (isMLatestListRemoved) {
+            PreferenceScreen preferenceScreen = (PreferenceScreen) findPreference("exodus_updater_screen");
+            preferenceScreen.addPreference(mLatestList);
+            mUpdatesList.setTitle(R.string.previous_updates_title);
+            isMLatestListRemoved = false;
+        }
         // Clear the list
         mUpdatesList.removeAll();
+        // Clear the Latest List.
+        mLatestList.removeAll();
 
         // Convert the installed version name to the associated filename
         String installedZip = "exodus_" + Utils.getInstalledVersion() + ".zip";
+
+        boolean isFirstDownload = true;
 
         // Add the updates
         for (UpdateInfo ui : updates) {
@@ -629,9 +641,13 @@ public class UpdatesSettings extends PreferenceActivity implements
                 up.setOnReadyListener(this);
                 mDownloading = true;
             }
-
-            // Add to the list
-            mUpdatesList.addPreference(up);
+            if(isFirstDownload){
+                mLatestList.addPreference(up);
+                isFirstDownload = false;
+            } else {
+                // Add to the list
+                mUpdatesList.addPreference(up);
+            }
         }
 
         // If no updates are in the list, show the default message
@@ -640,7 +656,11 @@ public class UpdatesSettings extends PreferenceActivity implements
             pref.setLayoutResource(R.layout.preference_empty_list);
             pref.setTitle(R.string.no_available_updates_intro);
             pref.setEnabled(false);
+            mUpdatesList.setTitle(R.string.update_not_available);
             mUpdatesList.addPreference(pref);
+            PreferenceScreen preferenceScreen = (PreferenceScreen) findPreference("exodus_updater_screen");
+            preferenceScreen.removePreference(mLatestList);
+            isMLatestListRemoved = true;
         }
     }
 
@@ -738,6 +758,41 @@ public class UpdatesSettings extends PreferenceActivity implements
 
         TextView messageView = (TextView) dialog.findViewById(android.R.id.message);
         messageView.setTextAppearance(this, android.R.style.TextAppearance_DeviceDefault_Small);
+    }
+
+    private void showGappsLink() {
+        final Resources resource = UpdatesSettings.this.getResources();
+        final String[] gappsURLEntries = resource.getStringArray(R.array.gapps_entries);
+        final String[] gappsURLLink = resource.getStringArray(R.array.gapps_entries_url);
+        final CharSequence[] modes = new CharSequence[gappsURLEntries.length];
+        for(int i=0; i< modes.length;i++) {
+            modes[i] = gappsURLEntries[i];
+        }
+        final String url = resource.getString(R.string.gapps_url);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.gapps_menu_title)
+                .setSingleChoiceItems(modes, 0,
+            new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    selected = which;
+                }
+            })
+            .setPositiveButton(R.string.dialog_ok, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.setData(Uri.parse(gappsURLLink[selected]));
+                    startActivity(intent);
+                }
+            })
+            .setNegativeButton(R.string.dialog_cancel, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.dismiss();
+                }
+            });
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     @Override
