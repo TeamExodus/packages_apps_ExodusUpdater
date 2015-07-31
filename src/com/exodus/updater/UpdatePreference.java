@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 The Exodus Project
+ * Copyright (C) 2015 The Exodus Project
  *
  * * Licensed under the GNU GPLv2 license
  *
@@ -31,10 +31,11 @@ import java.io.File;
 
 public class UpdatePreference extends Preference implements OnClickListener, OnLongClickListener {
     private static final float DISABLED_ALPHA = 0.4f;
-    public static final int STYLE_NEW = 1;
-    public static final int STYLE_DOWNLOADING = 2;
-    public static final int STYLE_DOWNLOADED = 3;
-    public static final int STYLE_INSTALLED = 4;
+    public static final int STYLE_OLD = 1;
+    public static final int STYLE_NEW = 2;
+    public static final int STYLE_DOWNLOADING = 3;
+    public static final int STYLE_DOWNLOADED = 4;
+    public static final int STYLE_INSTALLED = 5;
 
     public interface OnActionListener {
         void onStartDownload(UpdatePreference pref);
@@ -73,6 +74,7 @@ public class UpdatePreference extends Preference implements OnClickListener, OnL
                 case STYLE_DOWNLOADING:
                     mOnActionListener.onStopDownload(UpdatePreference.this);
                     break;
+                case STYLE_OLD:
                 case STYLE_NEW:
                     mOnActionListener.onStartDownload(UpdatePreference.this);
                     break;
@@ -120,6 +122,7 @@ public class UpdatePreference extends Preference implements OnClickListener, OnL
                 break;
 
             case STYLE_DOWNLOADING:
+            case STYLE_OLD:
             case STYLE_NEW:
             default:
                 // Do nothing for now
@@ -299,6 +302,15 @@ public class UpdatePreference extends Preference implements OnClickListener, OnL
                 mUpdatesButton.setImageResource(R.drawable.ic_tab_installed);
                 mUpdatesButton.setEnabled(false);
                 mSummaryText.setText(R.string.installed_update_summary);
+                mSummaryText.setVisibility(View.VISIBLE);
+                mProgressBar.setVisibility(View.GONE);
+                break;
+
+            case STYLE_OLD:
+                // Show the download button image and summary of 'Old'
+                mUpdatesButton.setImageResource(R.drawable.ic_tab_download);
+                mUpdatesButton.setEnabled(true);
+                mSummaryText.setText(R.string.old_update_summary);
                 mSummaryText.setVisibility(View.VISIBLE);
                 mProgressBar.setVisibility(View.GONE);
                 break;

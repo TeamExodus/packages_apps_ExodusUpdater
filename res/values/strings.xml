@@ -43,6 +43,7 @@
     <string name="previous_updates_title">Previous updates</string>
     <string name="no_available_updates_intro">The last check did not find any available updates. To manually check for new updates, use the Refresh button.</string>
     <string name="new_update_summary">New</string>
+    <string name="old_update_summary">Outdated</string>
     <string name="downloaded_update_summary">Downloaded</string>
     <string name="installed_update_summary">Installed</string>
     <string name="backup_rom_title">Create backup</string>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Exodus Project
+ * Copyright (C) 2015 The Exodus Project
  *
  * * Licensed under the GNU GPLv2 license
  *
